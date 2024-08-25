@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tutorial } from './entities/tutorial.entity';
@@ -13,27 +13,55 @@ export class TutorialsService {
   ) {}
 
   async findAll(titulo?: string, data?: Date): Promise<Tutorial[]> {
-    const query = this.tutorialsRepository.createQueryBuilder('tutorial');
-    if (titulo) {
-      query.andWhere('tutorial.titulo LIKE :titulo', { titulo: `%${titulo}%` });
+    try {
+      const query = this.tutorialsRepository.createQueryBuilder('tutorial');
+      if (titulo) {
+        query.andWhere('tutorial.titulo LIKE :titulo', { titulo: `%${titulo}%` });
+      }
+      if (data) {
+        query.andWhere('tutorial.data = :date', { date: data });
+      }
+      return await query.getMany();
+    } catch (error) {
+      throw new InternalServerErrorException('Erro interno ao buscar tutoriais.');
     }
-    if (data) {
-      query.andWhere('tutorial.data= :date', { data });
-    }
-    return query.getMany();
   }
 
   async create(createTutorialDto: CreateTutorialDto): Promise<Tutorial> {
-    const tutorial = this.tutorialsRepository.create(createTutorialDto);
-    return this.tutorialsRepository.save(tutorial);
+    try {
+      const tutorial = this.tutorialsRepository.create(createTutorialDto);
+      return await this.tutorialsRepository.save(tutorial);
+    } catch (error) {
+      throw new InternalServerErrorException('Erro interno ao criar o tutorial.');
+    }
   }
 
   async update(id: number, updateTutorialDto: UpdateTutorialDto): Promise<Tutorial> {
-    await this.tutorialsRepository.update(id, updateTutorialDto);
-    return this.tutorialsRepository.findOneBy({ id });
+    try {
+      const result = await this.tutorialsRepository.update(id, updateTutorialDto);
+      if (result.affected === 0) {
+        throw new NotFoundException('Tutorial não encontrado.');
+      }
+      return await this.tutorialsRepository.findOneBy({ id });
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Erro interno ao atualizar o tutorial.');
+    }
   }
 
   async remove(id: number): Promise<void> {
-    await this.tutorialsRepository.delete(id);
+    try {
+      const result = await this.tutorialsRepository.delete(id);
+      if (result.affected === 0) {
+        throw new NotFoundException('Tutorial não encontrado.');
+      }
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Erro interno ao remover o tutorial.');
+    }
   }
 }

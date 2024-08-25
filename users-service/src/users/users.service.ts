@@ -42,25 +42,31 @@ export class UsersService {
   }
 
   async login(loginDto: LoginDto): Promise<{ accessToken: string }> {
+    try {
+      const { email, senha } = loginDto;
+      const user = await this.userRepository.findOne({ where: { email } });
 
-    const { email, senha } = loginDto;
+      if (!user) {
+        throw new ConflictException('E-mail e/ou senha inválido(s).');
+      }
 
-    const user = await this.userRepository.findOne({ where: { email } });
-  
-    if (!user) {
-      throw new ConflictException('E-mail e/ou senha inválido(s).');
+      const passwordMatches = await bcrypt.compare(senha, user.senha);
+
+      if (!passwordMatches) {
+        throw new ConflictException('E-mail e/ou senha inválido(s).');
+      }
+
+      const payload = { email: user.email, sub: user.id };
+      const accessToken = this.jwtService.sign(payload);
+
+      return { accessToken };
+
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+      throw new InternalServerErrorException('Erro interno do servidor');
     }
-  
-    const passwordMatches = await bcrypt.compare(senha, user.senha);
-  
-    if (!passwordMatches) {
-      throw new ConflictException('E-mail e/ou senha inválido(s).');
-    }
-  
-    const payload = { email: user.email, sub: user.id };
-    const accessToken = this.jwtService.sign(payload);
-  
-    return { accessToken }; 
   }
 
 }
