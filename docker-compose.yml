@@ -45,4 +45,4 @@ services:
 
 networks:
   nestjs-microservices_mynetwork:
-    external: true
+    driver: bridge
