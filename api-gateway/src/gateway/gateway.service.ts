@@ -19,8 +19,8 @@ export class GatewayService {
     return response.data;
   }
 
-  async listTutorials(titulo?: string, data?: string) {
-    const params = { titulo, data };
+  async listTutorials(titulo?: string, data?: string, page?:number, limit?:number) {
+    const params = { titulo, data, page, limit };
     const response = await this.httpService.get('http://tutorials-service:3001/tutorial', { params }).toPromise();
     return response.data;
   }

@@ -43,9 +43,11 @@ export class GatewayController {
   @ApiResponse({ status: 500, description: 'Erro interno do servidor' })
   @ApiQuery({ name: 'titulo', required: false, description: 'Filtro pelo título do tutorial' })
   @ApiQuery({ name: 'data', required: false, description: 'Filtro pela data do tutorial' })
-  async listTutorials(@Query('titulo') titulo?: string, @Query('data') data?: string) {
+  @ApiQuery({ name: 'page', required: false, description: 'Número da página', type: Number })
+  @ApiQuery({ name: 'limit', required: false, description: 'Número de itens por página', type: Number })
+  async listTutorials(@Query('titulo') titulo?: string, @Query('data') data?: string, @Query('page') page?:number, @Query('limit') limit?: number) {
     try {
-      return await this.gatewayService.listTutorials(titulo, data);
+      return await this.gatewayService.listTutorials(titulo, data, page, limit);
     } catch (error) {
       throw new HttpException(error.response?.data?.message || 'Erro interno do servidor', error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR);
     }

@@ -15,30 +15,37 @@ export class TutorialsService {
 
   @Cacheable({ ttl: 300 })
   async findAll(
-    titulo?: string, 
-    data?: Date, 
-    page: number = 1, 
-    limit: number = 10
-  ): Promise<Tutorial[]> {
-    try {
-      const query = this.tutorialsRepository.createQueryBuilder('tutorial');
+    titulo?: string,
+    data?: Date,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{ data: Tutorial[]; total: number; page: number; lastPage: number }> {
+  try {
+    const query = this.tutorialsRepository.createQueryBuilder('tutorial');
 
-      if (titulo) {
-        query.andWhere('tutorial.titulo LIKE :titulo', { titulo: `%${titulo}%` });
-      }
-      if (data) {
-        query.andWhere('tutorial.data = :date', { date: data });
-      }
-
-      query.distinct(true);
-
-      query.skip((page - 1) * limit).take(limit);
-
-      return await query.getMany();
-    } catch (error) {
-      throw new InternalServerErrorException('Erro interno ao buscar tutoriais.');
+    if (titulo) {
+      query.andWhere('tutorial.titulo LIKE :titulo', { titulo: `%${titulo}%` });
     }
+    if (data) {
+      query.andWhere('tutorial.data = :date', { date: data });
+    }
+
+    query.distinct(true);
+
+    query.skip((page - 1) * limit).take(limit);
+
+    const [result, total] = await query.getManyAndCount();
+
+    return {
+      data: result,
+      total: total,
+      page: page,
+      lastPage: Math.ceil(total / limit),
+    };
+  } catch (error) {
+    throw new InternalServerErrorException('Erro interno ao buscar tutoriais.');
   }
+}
 
   async create(createTutorialDto: CreateTutorialDto): Promise<Tutorial> {
     try {

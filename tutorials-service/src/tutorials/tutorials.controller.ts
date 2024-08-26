@@ -8,8 +8,8 @@ export class TutorialsController {
   constructor(private readonly tutorialsService: TutorialsService) {}
 
   @Get()
-  async findAll(@Query('titulo') titulo?: string, @Query('data') data?: Date) {
-    return this.tutorialsService.findAll(titulo, data);
+  async findAll(@Query('titulo') titulo?: string, @Query('data') data?: Date, @Query('page') page?:number, @Query('limit') limit?: number) {
+    return this.tutorialsService.findAll(titulo, data, page, limit);
   }
 
   @Post()
