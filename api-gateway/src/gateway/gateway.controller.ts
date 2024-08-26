@@ -4,7 +4,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { CreateTutorialDto } from './dto/create-tutorial.dto';
 import { UpdateTutorialDto } from './dto/update-tutorial.dto';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags, ApiQuery } from '@nestjs/swagger';
 
 @ApiTags('API')
 @Controller()
@@ -39,8 +39,10 @@ export class GatewayController {
 
   @Get('tutorial')
   @ApiOperation({ summary: 'Listar todos os tutoriais' })
-  @ApiResponse({ status: 200, description: 'Lista de tutoriais', type: [CreateTutorialDto] })
+  @ApiResponse({ status: 200, description: 'Lista de tutoriais' })
   @ApiResponse({ status: 500, description: 'Erro interno do servidor' })
+  @ApiQuery({ name: 'titulo', required: false, description: 'Filtro pelo título do tutorial' })
+  @ApiQuery({ name: 'data', required: false, description: 'Filtro pela data do tutorial' })
   async listTutorials(@Query('titulo') titulo?: string, @Query('data') data?: string) {
     try {
       return await this.gatewayService.listTutorials(titulo, data);

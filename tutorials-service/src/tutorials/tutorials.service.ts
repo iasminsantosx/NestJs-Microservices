@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Tutorial } from './entities/tutorial.entity';
 import { CreateTutorialDto } from './dto/create-tutorial.dto';
 import { UpdateTutorialDto } from './dto/update-tutorial.dto';
+import { Cacheable } from 'nestjs-cacheable';
 
 @Injectable()
 export class TutorialsService {
@@ -12,15 +13,27 @@ export class TutorialsService {
     private tutorialsRepository: Repository<Tutorial>,
   ) {}
 
-  async findAll(titulo?: string, data?: Date): Promise<Tutorial[]> {
+  @Cacheable({ ttl: 300 })
+  async findAll(
+    titulo?: string, 
+    data?: Date, 
+    page: number = 1, 
+    limit: number = 10
+  ): Promise<Tutorial[]> {
     try {
       const query = this.tutorialsRepository.createQueryBuilder('tutorial');
+
       if (titulo) {
         query.andWhere('tutorial.titulo LIKE :titulo', { titulo: `%${titulo}%` });
       }
       if (data) {
         query.andWhere('tutorial.data = :date', { date: data });
       }
+
+      query.distinct(true);
+
+      query.skip((page - 1) * limit).take(limit);
+
       return await query.getMany();
     } catch (error) {
       throw new InternalServerErrorException('Erro interno ao buscar tutoriais.');
