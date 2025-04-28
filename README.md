@@ -34,7 +34,7 @@ git clone <urlProjeto>
 
 ## :computer: Endpoints
 
-### Rota padrão: http://localhost:3004
+### Rota padrão: http://localhost:3004/api
 <img src="https://github.com/user-attachments/assets/af8ad27a-a27c-4946-9eb5-04beef5f4d4a"/>
 
 ## :technologist: Contribuidores
